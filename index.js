@@ -28,20 +28,26 @@ con.query(sql,function(err,res){
     console.log(res);
 })
 
-sql = "select DistrictId,(count(old_alcohal_female)+count(old_alcohal_male)+count(new_alcohal_female)+count(new_alcohal_male)) as Count from mytable group by DistrictId;"
+//sql = "select DistrictId,(count(old_alcohal_female)+count(old_alcohal_male)+count(new_alcohal_female)+count(new_alcohal_male)) as Count from mytable group by DistrictId;"
 
-con.query(sql,function(err,res){
+/*con.query(sql,function(err,res){
     if(err)
         console.log(err);
     console.log(res);
     data  = res;    
 })
-
+*/
 app.get("/",function(req,res){
-    res.sendFile(__dirname+"public/index.html");
+    console.log("got");
+    //res.sendFile(__dirname+"public/home.html");
+    console.log("Hello")
 })
 
-app.get("/alcohol",function(req,res){
+app.get("/alcoholAllDist",function(req,res){
+    res.sendFile(__dirname+"/public/index.html");
+})
+
+app.get("/alcoholData",function(req,res){
     sql = "select DistrictId,(count(old_alcohal_female)+count(old_alcohal_male)+count(new_alcohal_female)+count(new_alcohal_male)) as Count from mytable group by DistrictId;"
 
     con.query(sql,function(err,response){

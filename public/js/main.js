@@ -37,7 +37,7 @@ g.append("text")
 
 var data;
 
-$.get('/alcohol',function(res,status){
+$.get('/alcoholData',function(res,status){
     console.log(res);
     data = res;
 
