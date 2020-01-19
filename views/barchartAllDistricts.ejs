@@ -1,0 +1,251 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="">
+    <title><%=title%></title>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+
+    <!-- jQuery UI CSS -->
+    <link rel="stylesheet" href="css/jquery-ui.min.css">
+    <link rel="stylesheet" href="css/jquery-ui.structure.min.css">
+    <link rel="stylesheet" href="css/jquery-ui.theme.min.css">
+
+    <!-- Custom styling -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <nav class="navbar navbar-default">
+        <div class="container">
+            <a class="navbar-brand" href="#"><%=title%> with threshold = <%=threshold%></a>
+        </div>
+
+        <ul class="nav navbar-nav navbar-right">
+            <li id="home"><a href="/">HOME</a></ li>
+        </ul>
+    </nav>
+
+    <!-- Bootstrap grid setup -->
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div id="slider-div">
+                    <label>Date: <span id="dateLabel1">12/05/2013</span> - <span
+                            id="dateLabel2">31/10/2017</span></label>
+                    <div id="date-slider"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <button class="btn btn-primary" onClick="onClickGetChart()">Check</button>
+            </div>
+        </div>
+        <div class="row">
+            <div id="chart-area"></div>
+        </div>
+    </div>
+
+    <!-- External JS libraries -->
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/d3.min.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <!-- Custom JS -->
+    <!--script src="/js/main.js"-->
+    <!--script-->
+    <script>
+        /*
+         *    main.js
+         *    Mastering Data Visualization with D3.js
+         *    5.2 - Looping with intervals
+         */
+
+        var margin = {
+            left: 80,
+            right: 20,
+            top: 50,
+            bottom: 100
+        };
+
+        var parseTime = d3.timeParse("%d/%m/%Y");
+        var formatTime = d3.timeFormat("%Y-%m-%d");
+
+        var width = 600 - margin.left - margin.right,
+            height = 400 - margin.top - margin.bottom;
+
+        var g = d3.select("#chart-area")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+
+        // X Label
+        g.append("text")
+            .attr("y", height + 50)
+            .attr("x", width / 2)
+            .attr("font-size", "20px")
+            .attr("text-anchor", "middle")
+            .text("District Id");
+
+        // Y Label
+        g.append("text")
+            .attr("y", -60)
+            .attr("x", -(height / 2))
+            .attr("font-size", "20px")
+            .attr("text-anchor", "middle")
+            .attr("transform", "rotate(-90)")
+            .text("<%=title%>")
+
+
+        // Add jQuery UI slider
+        $("#date-slider").slider({
+            range: true,
+            //max: parseTime("31/10/2017").getTime(),
+            max: new Date().getTime(),
+            min: parseTime("12/8/2017").getTime(),
+            step: 86400000, // One day
+            values: [parseTime("12/8/2017").getTime(), new Date().getTime()],
+            slide: function (event, ui) {
+                $("#dateLabel1").text(formatTime(new Date(ui.values[0])));
+                $("#dateLabel2").text(formatTime(new Date(ui.values[1])));
+            }
+        });
+
+
+        /* Display the chart onclick */
+        update()
+        function onClickGetChart() {
+            console.log("clicked");
+            update();
+        }
+
+        /* Get the data from sql db */
+
+        var data;
+
+        /*    $.get('<%=data%>', function (res, status) {
+            console.log(res);
+            data = res;
+            console.log(data)
+            value = "<%=parameter%>";
+
+            data.forEach(function (d) {
+                d.DistrictId = +d.DistrictId;
+                d[value] = +d[value];
+            });
+          //  update();
+        })
+*/
+        /* Axis */
+
+
+        var xAxisGroup = g.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+
+        var yAxisGroup = g.append("g")
+            .attr("class", "y axis")
+
+        function update() {
+            //console.log($("#date-slider").slider("values"));
+            sliderValues = $("#date-slider").slider("values");
+            fromDate = formatTime(new Date(sliderValues[0]));
+            toDate = formatTime(new Date(sliderValues[1]));
+            value = "<%=parameter%>";
+
+            console.log(fromDate + " " + toDate);
+            postData = {
+                fromDate: fromDate,
+                toDate: toDate
+            }
+
+            $.post('<%=data%>', postData, function (response, status) {
+                //console.log(<%=data%>);
+                console.log(response);
+                
+                data = response;
+
+                console.log("Data changed...")
+                console.log(data)
+                // X Scale
+                var x = d3.scaleBand()
+                    .domain(data.map(function (d) {
+                        return d.DistrictId
+                    }))
+                    .range([0, width])
+                    .padding(0.2);
+
+                // Y Scale
+                var y = d3.scaleLinear()
+                    .domain([0, d3.max(data, function (d) {
+                        return d[value]
+                    })])
+                    .range([height, 0]);
+
+                // X Axis
+                var xAxisCall = d3.axisBottom(x);
+                xAxisGroup.call(xAxisCall);
+
+                // Y Axis
+                var yAxisCall = d3.axisLeft(y)
+                    .tickFormat(function (d) {
+                        return d;
+                    });
+                yAxisGroup.call(yAxisCall);
+
+                // Bars
+                var rects = g.selectAll("rect")
+                    .data(data)
+
+                // remove old elements
+                rects.exit().remove();
+
+                // UPDATE old elements present in new data.
+                rects
+                    .attr("y", function (d) {
+                        return y(d[value]);
+                    })
+                    .attr("x", function (d) {
+                        return x(d.DistrictId)
+                    })
+                    .attr("height", function (d) {
+                        return height - y(d[value]);
+                    })
+                    .attr("width", x.bandwidth)
+                    .attr("fill", function (d) {
+                        if (d[value] < <%=threshold%> ) {
+                            return "green";
+                        } else
+                            return "red"
+                    });
+
+                rects.enter()
+                    .append("rect")
+                    .attr("y", function (d) {
+                        return y(d[value]);
+                    })
+                    .attr("x", function (d) {
+                        return x(d.DistrictId)
+                    })
+                    .attr("height", function (d) {
+                        return height - y(d[value]);
+                    })
+                    .attr("width", x.bandwidth)
+                    .attr("fill", function (d) {
+                        if (d[value] < <%=threshold%> ) {
+                            return "green";
+                        } else
+                            return "red"
+                    });
+
+            })
+        }
+    </script>
+
+</body>
+
+</html>

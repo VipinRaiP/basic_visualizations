@@ -1,0 +1,36 @@
+<%- include("partials/header"); -%>
+
+<body>
+
+    <nav class="navbar navbar-default">
+        <div class="container">
+            <a class="navbar-brand" href="#">Home</a>      
+        </div>
+    </nav>
+
+    <ol>
+        <li>
+            <ul class="list-group list-group-flush">
+                <h4>Comparision across all districts</h4>
+                <li class="list-group-item"><a href="/alcoholAllDist"> Alcohol cases all districts</a></li>
+                <li class="list-group-item"><a href="/suicideAllDist"> Suicide cases all districts</a></li>
+            </ul>
+        </li>
+        
+        <li>
+            <ul class="list-group list-group-flush">
+                <h4>District wise</h4>
+                <li class="list-group-item"><a href="/alcoholAllDist"> Alcohol cases all districts</a></li>
+                <li class="list-group-item">TBD</li>
+            </ul>
+        </li>
+    </ol>
+
+<!-- External JS libraries -->
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/d3.min.js"></script>
+
+</body>
+
+<%- include("partials/footer"); -%>
